@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.foolish.dubbo.provider.entity.mapper.CommonMapper" >
+    <resultMap id="BaseResultMap" type="cn.foolish.dubbo.provider.entity.model.UserEntity" >
+        <result property="id" column="id"/>
+        <result property="userName" column="user_name"/>
+        <result property="password" column="password"/>
+        <result property="state" column="state"/>
+    </resultMap>
+    <select id="findUserByUsername" parameterType="String" resultMap="BaseResultMap">
+        select id, user_name, password,state
+        from dubbo_user where user_name=#{userName}
+    </select>
+    <select id="selectByPrimaryKey" parameterType="Long" resultMap="BaseResultMap">
+        select id, user_name, password,state
+        from dubbo_user where id=#{userId}
+    </select>
+</mapper>
