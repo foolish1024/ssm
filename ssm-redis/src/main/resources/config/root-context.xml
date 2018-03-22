@@ -75,4 +75,45 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
     </bean>
     <!-- *******************************************MyBatis配置 END******************************************* -->
+    
+    <!-- *******************************************jedis配置 START******************************************* -->
+    <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxIdle" value="100"/>
+        <property name="maxWaitMillis" value="300"/>
+        <property name="testOnBorrow" value="true"/>
+    </bean>
+    <!-- redis服务器中心 -->
+    <bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <property name="poolConfig" ref="poolConfig"/>
+        <property name="port" value="6379"/>
+        <property name="hostName" value="192.168.8.126"/>
+        <property name="password" value="foobared"/>
+        <property name="timeout" value="100000"></property>
+    </bean>
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+        </property>
+    </bean>
+    <!-- cache配置 -->
+    <bean id="redisUtil" class="com.foolish.utils.RedisUtil">
+        <property name="redisTemplate" ref="redisTemplate"/>
+    </bean>
+    <bean id="methodCacheInterceptor" class="com.foolish.intercept.MethodCacheInterceptor">
+        <property name="redisUtil" ref="redisUtil"/>
+    </bean>
+    <!--配置切面拦截方法 -->
+    <aop:config proxy-target-class="true">
+        <!--将com.foolish.service包下的所有select开头的方法加入拦截，去掉select则加入所有方法-->
+        <aop:pointcut id="controllerMethodPointcut" expression="
+        execution(* com.foolish.redis.service.*.select*(..))"/>
+        <aop:pointcut id="selectMethodPointcut" expression="
+        execution(* com.foolish.redis.entity.mapper.*Mapper.select*(..))"/>
+        <aop:advisor advice-ref="methodCacheInterceptor" pointcut-ref="controllerMethodPointcut"/>
+    </aop:config>
+    <!-- *******************************************jedis配置 END*******************************************-->
 </beans>
